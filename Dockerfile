@@ -15,6 +15,7 @@ WORKDIR /app
 ENV VIRTUAL_ENV=/app/.venv \
     PATH="/app/.venv/bin:$PATH"
 COPY --from=builder ${VIRTUAL_ENV} ${VIRTUAL_ENV}
+COPY ./run.sh /app/run.sh
 COPY ./src /app/src
 COPY ./conf /app/conf
-ENTRYPOINT [ "python", "-m", "src.generate" ]
+ENTRYPOINT [ "/app/run.sh" ]
