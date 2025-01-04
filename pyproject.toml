@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "profit_trailer_generate_conf"
+version = "0.1.0"
+description = ""
+authors = ["Jase Earl <jaseearl@gmail.com>"]
+readme = "README.md"
+
+# Use numba explicitly to avoid llvmlite issues with UMAP-learn
+[tool.poetry.dependencies]
+python = "^3.12"
+requests-cache = "^1.2.1"
+polars = "^1.15.0"
+joblib = "^1.4.2"
+pydantic = "^2.10.3"
+jinja2 = "^3.1.5"
+numpy = "^2.2.1"
+pyyaml = "^6.0.2"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

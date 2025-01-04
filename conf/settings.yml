@@ -1,0 +1,12 @@
+---
+predictions_api: 'http://predict.finsonos.com:5001/prediction'
+configs:
+  - name: 'To the moon and KEK'
+    host: 'profit.example.com'
+    label: 'TEST'
+    password: 'YourMum69'
+    template: 'testing'
+    interval: 86400
+    upload: false
+    defaults:
+      top_coins: 200
