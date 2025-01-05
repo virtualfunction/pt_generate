@@ -7,6 +7,7 @@ configs:
     password: 'YourMum69'
     template: 'testing'
     interval: 86400
+    market: 'USDT'
     upload: false
     defaults:
       top_coins: 200

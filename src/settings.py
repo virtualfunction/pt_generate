@@ -10,6 +10,7 @@ class BotSetting(BaseModel):
     label: str # PT config name
     template: str # Location in ./conf
     interval: int # 14400 or 86400 for now
+    market: str # BTC or USDT
     upload: bool = False
     defaults: dict[str, Any]
 

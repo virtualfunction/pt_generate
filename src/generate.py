@@ -21,9 +21,9 @@ class Strategy:
     indicators: str
 
     def __repr__(self):
-        return ("\n".join([ 
-            'PAIRS', self.pairs, "\n", 
-            'DCA', self.dca, "\n", 
+        return ("\n".join([
+            'PAIRS', self.pairs, "\n",
+            'DCA', self.dca, "\n",
             'INDICATORS', self.indicators, "\n" ]))
 
 @tmp_disk.cache
@@ -62,6 +62,7 @@ def prepare(table: DataFrame, settings: BotSetting) -> dict[str, Any]:
         entry_summary=dict(entry_summary.to_numpy().tolist()), # Frivolous way to to depend on numpy :-)
         nearest_timeframe=nearest_timeframe,
         interval=settings.interval,
+        market=settings.market,
         settings=settings,
         shorts=shorts,
         longs=longs)
