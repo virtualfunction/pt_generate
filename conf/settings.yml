@@ -1,12 +1,12 @@
 ---
-predictions_api: 'http://predict.finsonos.com:5001/prediction'
+predictions_api: 'http://localhost:5001/prediction' # 'http://predict.finsonos.com:5001/prediction'
 configs:
   - name: 'To the moon and KEK'
     host: 'profit.example.com'
     label: 'TEST'
     password: 'YourMum69'
     template: 'testing'
-    interval: 86400
+    interval: 14400
     market: 'USDT'
     upload: false
     defaults:

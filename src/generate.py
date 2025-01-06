@@ -36,29 +36,30 @@ def fetch_json(url: str) -> Any:
 def nearest_timeframe(interval: int, muliplier: float) -> int:
     return min(TIMEFRAMES, key=lambda x: abs(x - (interval * muliplier * 1.5)))
 
-def fetch_predictions(interval: int | None = 86400, url: str | None = None):
+def fetch_predictions(interval: int | None = 86400, base: str = 'USDT', url: str | None = None):
     assert None == (interval and url), 'Set interval or URL'
-    url = url or f'{settings.predictions_api}/crypto/{interval}'
+    url = url or f'{settings.predictions_api}/crypto/{base}/{interval}'
     # Filter out coins with single letter as they confuse PT as a strategy name
     return (DataFrame(fetch_json(url)['predictions']).filter(col('symbol').str.len_chars() > 1).with_columns(
         from_epoch(col('date'), time_unit='ms'),
         weighting=(col('price_prediction').abs() / col('price_prediction').abs().mean()).clip(upper_bound=2)))
 
-def longs(table: DataFrame, threshold: float = 10) -> DataFrame:
-    return table.filter(col('price_prediction') > threshold, col('entry_prediction') == 'GOOD')
+def longs(table: DataFrame, threshold: float = 2) -> DataFrame:
+    return table.filter(col('price_prediction') > (threshold / 100), col('entry_prediction') == 'GOOD', col('target_prediction') == 'LONG')
 
-def shorts(table: DataFrame, threshold: float = 10) -> DataFrame:
-    return table.filter(col('price_prediction') < -threshold, col('entry_prediction') == 'BAD')
+def shorts(table: DataFrame, threshold: float = 2) -> DataFrame:
+    return table.filter(col('price_prediction') < -(threshold / 100), col('entry_prediction') == 'BAD', col('target_prediction') == 'SHORT')
 
 def prepare(table: DataFrame, settings: BotSetting) -> dict[str, Any]:
     long_bias = longs(table)['price_prediction'].sum()
-    short_bias = shorts(table)['price_prediction'].sum()
+    short_bias = shorts(table)['price_prediction'].sum() or 1
+    print([long_bias, short_bias])
     count_normalised = (100 * col('count') / col('count').sum()).round(2)
     entry_summary = table['entry_prediction'].value_counts().with_columns(count=count_normalised)
     return dict(
         coins=table.clone(),
         round=round, min=min, max=max,log10=log10,
-        long_short_ratio=round(log10(abs(long_bias / short_bias)), 3), # >1 is Long bias, <1 is short bias
+        long_short_ratio=1 + round(long_bias / (long_bias + abs(short_bias)), 3), # >1 is Long bias, <1 is short bias
         entry_summary=dict(entry_summary.to_numpy().tolist()), # Frivolous way to to depend on numpy :-)
         nearest_timeframe=nearest_timeframe,
         interval=settings.interval,
@@ -74,12 +75,12 @@ def render_file(settings: BotSetting, category: str, table: DataFrame) -> str:
     env = Environment(loader=FileSystemLoader(f'{FOLDER}/{settings.template}'))
     env.filters['comment'] = comment
     env.filters['nearest_timeframe'] = nearest_timeframe
-    with Config(tbl_cols=20, tbl_rows=200, float_precision=2, tbl_width_chars=256):
+    with Config(tbl_cols=20, tbl_rows=300, float_precision=2, tbl_width_chars=256):
         template = env.get_template(f'{category}.properties')
         return template.render(prepare(table, settings))
 
 def render(settings: BotSetting, table: DataFrame | None = None) -> Strategy:
-    table = table or fetch_predictions(interval=settings.interval)
+    table = table or fetch_predictions(interval=settings.interval, base=settings.market)
     return Strategy(**{
         category: render_file(settings, category, table)
         for category in 'pairs dca indicators'.split() })
